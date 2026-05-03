@@ -3,8 +3,6 @@ package journeymap.client.webmap.routes;
 import io.javalin.http.ContentType;
 import io.javalin.http.Context;
 import journeymap.client.JourneymapClient;
-import journeymap.client.io.FileHandler;
-import journeymap.client.io.IconSetFileHandler;
 import journeymap.client.render.texture.TextureCache;
 import journeymap.client.webmap.Resources;
 import journeymap.client.webmap.WebMap;
@@ -16,7 +14,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 
 import static journeymap.client.io.FileHandler.ASSETS_JOURNEYMAP_UI;
 
@@ -44,14 +41,13 @@ public class Resource
         {
             if (!resourceLocation.getResourceDomain().contains("journeymap"))
             {
-                img = TextureCache.instance().getEntityIconTexture(JourneymapClient.getWebMapProperties().getEntityIconSetName().get(), resource).getImage();
+                img = TextureCache.instance().getEntityIconImage(JourneymapClient.getWebMapProperties().getEntityIconSetName().get(), resource);
 
-                InputStream is = FileHandler.getIconStream(IconSetFileHandler.ASSETS_JOURNEYMAP_ICON_ENTITY, JourneymapClient.getWebMapProperties().getEntityIconSetName().get(), resource);
-                if (img == null && is != null)
+                if (img != null)
                 {
-
                     ctx.contentType(ContentType.IMAGE_PNG);
-                    ctx.result(is);
+                    ImageIO.write(img, "png", ctx.res.getOutputStream());
+                    ctx.res.getOutputStream().flush();
                     return;
                 }
             }

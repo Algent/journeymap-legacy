@@ -301,6 +301,19 @@ public class TextureCache
         }
     }
 
+    /**
+     * Returns the BufferedImage for an entity icon WITHOUT constructing a TextureImpl.
+     * Safe to call from any thread — no OpenGL context required.
+     * Used exclusively by the webmap HTTP handler.
+     */
+    public BufferedImage getEntityIconImage(String setName, String iconPath)
+    {
+        File parentDir = IconSetFileHandler.getEntityIconDir();
+        String assetPath = IconSetFileHandler.ASSETS_JOURNEYMAP_ICON_ENTITY;
+        BufferedImage fallback = FileHandler.getWebImage("unknown.png");
+        return FileHandler.getIconFromFile(parentDir, assetPath, setName, iconPath, fallback);
+    }
+
     public TextureImpl getThemeTexture(Theme theme, String iconPath)
     {
         return getThemeTexture(theme, iconPath, 0, 0, false, 1f, false);
