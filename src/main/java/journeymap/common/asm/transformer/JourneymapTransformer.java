@@ -1,5 +1,6 @@
 package journeymap.common.asm.transformer;
 
+import journeymap.common.Journeymap;
 import journeymap.common.asm.JourneymapPlugin;
 import net.minecraft.launchwrapper.IClassTransformer;
 import org.objectweb.asm.ClassReader;
@@ -31,9 +32,9 @@ public final class JourneymapTransformer implements IClassTransformer
         final ClassNode cn = new ClassNode();
         cr.accept(cn, 0);
 
-        boolean changed = false;
-        boolean changedTwo = false;
-        boolean changedThree = false;
+        boolean changedClick = false;
+        boolean changedYNOwner = false;
+        boolean changedYNDesc = false;
 
         final boolean obf = JourneymapPlugin.isObf();
         final String CLICK_METHOD_NAME = obf ? "a" : "confirmClicked";
@@ -44,6 +45,7 @@ public final class JourneymapTransformer implements IClassTransformer
 
         for (MethodNode mn : cn.methods)
         {
+            if (changedClick && changedYNOwner && changedYNDesc) break;
             if (CLICK_METHOD_NAME.equals(mn.name) && CLICK_METHOD_DESC.equals(mn.desc))
             {
 
@@ -65,7 +67,7 @@ public final class JourneymapTransformer implements IClassTransformer
                                             "beforeWorldDeletion",
                                             "(Ljava/lang/String;)Ljava/lang/String;",
                                             false));
-                            changed = true;
+                            changedClick = true;
                             break;
                         }
                     }
@@ -85,7 +87,7 @@ public final class JourneymapTransformer implements IClassTransformer
                         if (OLD_GUI_YN.equals(mNode.owner))
                         {
                             mNode.owner = NEW_GUI_YN;
-                            changedTwo = true;
+                            changedYNOwner = true;
                         }
                     }
                     else if (node instanceof TypeInsnNode)
@@ -94,18 +96,22 @@ public final class JourneymapTransformer implements IClassTransformer
                         if (OLD_GUI_YN.equals(tNode.desc))
                         {
                             tNode.desc = NEW_GUI_YN;
-                            changedThree = true;
+                            changedYNDesc = true;
                         }
                     }
                 }
             }
         }
 
-        if (changed && changedTwo && changedThree)
+        if (changedClick && changedYNOwner && changedYNDesc)
         {
             final ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
             cn.accept(cw);
             return cw.toByteArray();
+        }
+        else
+        {
+            Journeymap.getLogger().error("[JM ASM] JourneymapTransformer failed changedClick={} changedYNOwner={} changedYNDesc={}", changedClick, changedYNOwner, changedYNDesc);
         }
 
         return basicClass;
